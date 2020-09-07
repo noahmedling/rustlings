@@ -11,8 +11,6 @@ struct Color {
     blue: u8,
 }
 
-// I AM NOT DONE
-
 // Your task is to complete this implementation
 // and return an Ok result of inner type Color.
 // You need create implementation for a tuple of three integer,
@@ -22,10 +20,21 @@ struct Color {
 // but slice implementation need check slice length!
 // Also note, that chunk of correct rgb color must be integer in range 0..=255.
 
+fn stringify_err<F>(f: F) -> Result<Color, String>
+    where F: FnOnce() -> Result<Color, std::num::TryFromIntError>,
+{
+    f().map_err(|e| e.to_string())
+}
+
 // Tuple implementation
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = String;
     fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        stringify_err(|| Ok(Color {
+            red: tuple.0.try_into()?,
+            green: tuple.1.try_into()?,
+            blue: tuple.2.try_into()?,
+        }))
     }
 }
 
@@ -33,6 +42,11 @@ impl TryFrom<(i16, i16, i16)> for Color {
 impl TryFrom<[i16; 3]> for Color {
     type Error = String;
     fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        stringify_err(|| Ok(Color {
+            red: arr[0].try_into()?,
+            green: arr[1].try_into()?,
+            blue: arr[2].try_into()?,
+        }))
     }
 }
 
@@ -40,6 +54,14 @@ impl TryFrom<[i16; 3]> for Color {
 impl TryFrom<&[i16]> for Color {
     type Error = String;
     fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        if slice.len() != 3 {
+            return Err("Slice must be length 3.".into());
+        }
+        stringify_err(|| Ok(Color {
+            red: slice[0].try_into()?,
+            green: slice[1].try_into()?,
+            blue: slice[2].try_into()?,
+        }))
     }
 }
 
